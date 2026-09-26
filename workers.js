@@ -44,7 +44,7 @@ async function switchRouter(request, env) {
                 }
                 break
             case "getbduss":
-                resp.data = await getBduss(_searchParams.get("sign"), (_searchParams.get("full") === null ? false : true))
+                resp.data = await getBduss(env, _searchParams.get("sign"), (_searchParams.get("full") === null ? false : true))
                 if (resp.data.status >= 0 && resp.data.status <= 2) {
                     resp.errno = 0
                     resp.msg = "Success"
@@ -63,7 +63,7 @@ async function getqrcode() {
     return { sign: response.sign, imgurl: response.imgurl }
 }
 
-async function getBduss(sign, full = false) {
+async function getBduss(env, sign, full = false) {
     let resp = { status: 1, state: 'error', bduss: "", msg: "", fullmode: false }
     let response = await (await fetch("https://passport.baidu.com/channel/unicast?channel_id=" + sign + "&callback=a", { headers: requestHeaders })).text()
     if (response) {
@@ -89,10 +89,27 @@ async function getBduss(sign, full = false) {
                 const userData = await JSON.parse(((await (await fetch('https://passport.baidu.com/v3/login/main/qrbdusslogin?bduss=' + channel_v.v, { headers: requestHeaders })).text()).replace(/'([^'']+)'/gm, `"$1"`)).replace(/\\&/gm, "&"))
 
                 if (userData && userData.code === "110000") {
+                    const baninfo = (env.BANINFO ? env.BANINFO : '').trim()
+                    if (baninfo !== '') {
+                        try {
+                            const baninfoList = baninfo.split(',').map(x => x.trim().split(':').map(y => y.trim())).filter(x => x.length > 0 && x[0] !== '')
+                            if (baninfoList.some(x => x[0] === (userData?.data?.user?.userId?.toString() || ''))) {
+                                resp.status = 1
+                                resp.state = 'banned'
+                                resp.msg = "Banned"
+
+                                return resp
+                            }
+                        } catch (e) {
+                            console.error(e)
+                        }
+                    }
+                    
                     resp.status = 2
                     resp.state = 'success'
                     resp.msg = "Success"
                     resp.bduss = userData.data.session.bduss
+
                     if (full) {
                         resp.fullmode = true
                         resp.data = {

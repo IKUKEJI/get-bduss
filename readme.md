@@ -10,6 +10,7 @@
 | :-------- | :----- | :--------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
 | `REFERER` | `*`    | `http://example.com/\|https://example.com/`                            | 不需要路径                                                                                                         |
 | `ROUTER`  | `/api` | `http://example.com/\|https://example.com/path/\|https://example.com/` | 即触发路由的部分（建议将 设置 -> 触发器 -> 路由 列表里面的都放进去，注意要去掉正则表达式）。默认值**没有**后面斜杠 |
+| `BANINFO` |        | `uid1:sth1...,uid2:sth2,...`，最简：`uid1,uid2,uid3,...`               | 禁止某些账号使用                                                                                                   |
 
 可以取消掉 `wrangler.jsonc` 的键 `vars` 的注释来设置环境变量
 
@@ -20,7 +21,7 @@
 npx wrangler dev -l
 
 # 发布
-npx wrangler publish 
+npx wrangler publish
 ```
 
 更多配置请查看 Cloudflare 的相关文档
@@ -33,6 +34,7 @@ npx wrangler publish
   - `waiting`
   - `scanned`
   - `success`
+  - `banned`
 
 ## ~~php 后端~~
 
@@ -43,7 +45,7 @@ npx wrangler publish
 `/index.html` 是演示站 <https://bduss.nest.moe> 的源码，要直接使用需要修改或删除下述几项
 
 - api 地址，搜索 `!!! DEPLOY YOUR OWN API ENDPOINT !!!` 找到夹在中间的变量修改值即可，演示站后端已开访问校验，请尽量自行部署后端
-  - 如果直接用 wrangler 或者通过 GitHub 部署到 workers 的可以无视
+    - 如果直接用 wrangler 或者通过 GitHub 部署到 workers 的可以无视
 
 ## 关于回调与stoken
 
@@ -57,17 +59,17 @@ npx wrangler publish
 // query 回调带 stoken
 // https://bduss.nest.moe/#/aHR0cHM6Ly9leGFtcGxlLmNvbS8/c3Rva2VuX3R5cGU9dGI=
 // https://bduss.nest.moe/#/aHR0cHM6Ly9leGFtcGxlLmNvbS8_c3Rva2VuX3R5cGU9dGI
-"https://bduss.nest.moe/#/" + btoa("https://example.com/?stoken_type=tb")/
+'https://bduss.nest.moe/#/' + btoa('https://example.com/?stoken_type=tb') /
 // https://example.com/?stoken_type=tb&bduss=...&stoken=...
 
 // hash 回调带 stoken
 // https://bduss.nest.moe/#/aHR0cHM6Ly9leGFtcGxlLmNvbS8jL3N0b2tlbl90eXBlPXRi
-"https://bduss.nest.moe/#/" + btoa("https://example.com/#/stoken_type=tb")
+'https://bduss.nest.moe/#/' + btoa('https://example.com/#/stoken_type=tb')
 // https://example.com/#/stoken_type=tb&bduss=...&stoken=...
 
 // query 回调不带 stoken
 // https://bduss.nest.moe/#/aHR0cHM6Ly9leGFtcGxlLmNvbS8
-"https://bduss.nest.moe/#/" + btoa("https://example.com/")
+'https://bduss.nest.moe/#/' + btoa('https://example.com/')
 // https://example.com/?stoken_type=tb&bduss=...
 ```
 

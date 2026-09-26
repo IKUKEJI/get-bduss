@@ -292,6 +292,20 @@
           <button class="zi-btn primary" onclick="init(true)">再次获取</button>
         </div>
       </div>
+      <div id="card-bduss-error-ban" class="none">
+        <div style="display:flex; justify-content:center; align-items: center; width: 100%;">
+          <div class="zi-card"
+            style="max-width: calc(200px - 2rem); max-height: calc(200px - 2rem); display:flex; justify-content:center; align-items: center; width: 100%; aspect-ratio: 1; background-color: #ffffff;">
+            <svg alt="qrcode-failed" style="color: #ff3333;" xmlns="http://www.w3.org/2000/svg" width="2.5rem"
+              height="2.5rem"
+              viewBox="0 0 16 16"><!-- Icon from Bootstrap Icons by The Bootstrap Authors - https://github.com/twbs/icons/blob/main/LICENSE.md -->
+              <path fill="currentColor"
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2a1 1 0 0 0 0-2" />
+            </svg>
+          </div>
+        </div>
+        <h3>已禁用</h3>
+      </div>
     </div>
     <div style="text-align: center; margin-top: 1em; font-family: monospace; color: #000000;"><a
         href="https://github.com/BANKA2017/get-bduss" target="_blank">/get-bduss</a></div>
@@ -303,7 +317,7 @@
     const api = "/api"
     // !!! DEPLOY YOUR OWN API ENDPOINT !!! ^^^
 
-    const defaultResetCount = 15 //baidu is 18
+    const defaultResetCount = 15 //baidu is 18 // 10mins
 
     let activeId = "card-loading"//active id
     let fullModeStatus = false
@@ -427,16 +441,21 @@
           switchActiveStatus("card-bduss-error")
           return
         }
-        if (response.data.status >= 0 && response.data.status < 2) {
+
+        if (response?.data?.state === 'banned') {
+            switchActiveStatus("card-bduss-error-ban")
+            // localStorage.setItem('banned-device', '1')
+            return
+        } else if (response?.data?.state === 'error') {
+          sign = ''
+          switchActiveStatus("card-bduss-error")
+        } else if (response?.data?.status >= 0 && response?.data?.status < 2) {
           if (response.data.state === 'scanned') {
             switchActiveStatus("card-success")
           } else if (response.data.state === 'waiting') {
             switchActiveStatus("card-scan")
           }
           getStatus(response.data.status, sign)
-        } else if (response.data.state === 'error') {
-          sign = ''
-          switchActiveStatus("card-bduss-error")
         } else if (response.data.state === 'success') {
           getElement("bduss-list").innerText = response.data.bduss
           if (callbackURL?.href) {
@@ -563,8 +582,11 @@
 
     // first user?
     let isFirstUser = localStorage.getItem('callback-checked') !== '1'
+    let isBanned = false// localStorage.getItem('banned-device') !== '1'
     if (callbackURL?.host && isFirstUser) {
       switchActiveStatus("card-callback-check")
+    } else if (isBanned) {
+      switchActiveStatus("card-bduss-error-ban")
     } else {
       init(true)
     }
